@@ -6,6 +6,7 @@
 config OCXL_BASE
 	bool
 	select PPC_COPRO_BASE
+	select NUMA
 
 config OCXL
 	tristate "OpenCAPI coherent accelerator support"
