@@ -475,6 +475,39 @@ void pnv_ocxl_spa_release(void *platform_data)
 }
 EXPORT_SYMBOL_GPL(pnv_ocxl_spa_release);
 
+u64 pnv_ocxl_platform_lpc_setup(struct pci_dev *pdev, u64 size)
+{
+	struct pci_controller *hose = pci_bus_to_host(pdev->bus);
+	struct pnv_phb *phb = hose->private_data;
+	struct pci_dn *pdn = pci_get_pdn(pdev);
+	u32 bdfn = (pdn->busno << 8) | pdn->devfn;
+	u64 base_addr = 0;
+
+	int rc = opal_npu_mem_alloc(phb->opal_id, bdfn, size, &base_addr);
+
+	WARN_ON(rc);
+
+	base_addr = be64_to_cpu(base_addr);
+
+	return base_addr;
+}
+EXPORT_SYMBOL_GPL(pnv_ocxl_platform_lpc_setup);
+
+void pnv_ocxl_platform_lpc_release(struct pci_dev *pdev)
+{
+	struct pci_controller *hose = pci_bus_to_host(pdev->bus);
+	struct pnv_phb *phb = hose->private_data;
+	struct pci_dn *pdn = pci_get_pdn(pdev);
+	u32 bdfn;
+	int rc;
+
+	bdfn = (pdn->busno << 8) | pdn->devfn;
+	rc = opal_npu_mem_release(phb->opal_id, bdfn);
+	WARN_ON(rc);
+}
+EXPORT_SYMBOL_GPL(pnv_ocxl_platform_lpc_release);
+
+
 int pnv_ocxl_spa_remove_pe_from_cache(void *platform_data, int pe_handle)
 {
 	struct spa_data *data = (struct spa_data *) platform_data;
