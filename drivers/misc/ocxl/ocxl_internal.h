@@ -32,6 +32,8 @@ struct ocxl_file_info {
 	struct device dev;
 	struct cdev cdev;
 	struct bin_attribute attr_global_mmio;
+	struct bin_attribute attr_lpc_mem;
+	struct bin_attribute attr_special_purpose_mem;
 };
 
 struct ocxl_afu {
@@ -53,10 +55,7 @@ struct ocxl_afu {
 	u64 pp_mmio_start;
 	void *private;
 	u64 lpc_base_addr; /* Covers both LPC & special purpose memory */
-	struct bin_attribute attr_global_mmio;
-	struct bin_attribute attr_lpc_mem;
 	struct resource lpc_res;
-	struct bin_attribute attr_special_purpose_mem;
 	struct resource special_purpose_res;
 };
 

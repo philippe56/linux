@@ -210,7 +210,7 @@ static void unmap_mmio_areas(struct ocxl_afu *afu)
 	release_fn_bar(afu->fn, afu->config.global_mmio_bar);
 }
 
-int ocxl_map_lpc_mem(struct ocxl_afu *afu)
+int ocxl_afu_map_lpc_mem(struct ocxl_afu *afu)
 {
 	struct pci_dev *dev = to_pci_dev(afu->fn->dev.parent);
 
@@ -233,7 +233,7 @@ int ocxl_map_lpc_mem(struct ocxl_afu *afu)
 
 	return 0;
 }
-EXPORT_SYMBOL(ocxl_map_lpc_mem);
+EXPORT_SYMBOL(ocxl_afu_map_lpc_mem);
 
 struct resource *ocxl_afu_lpc_mem(struct ocxl_afu *afu)
 {

@@ -223,7 +223,7 @@ int ocxl_irq_set_handler(struct ocxl_context *ctx, int irq_id,
  *
  * afu: The AFU that has the LPC memory to map
  */
-extern int ocxl_map_lpc_mem(struct ocxl_afu *afu);
+extern int ocxl_afu_map_lpc_mem(struct ocxl_afu *afu);
 
 /**
  * Get the physical address range of LPC memory for an AFU
