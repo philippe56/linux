@@ -738,7 +738,7 @@ int ocxl_link_add_lpc_mem(void *link_handle, u64 size)
 }
 EXPORT_SYMBOL_GPL(ocxl_link_add_lpc_mem);
 
-u64 ocxl_link_lpc_map(void *link_handle, struct pci_dev *pdev)
+u64 ocxl_link_lpc_online(void *link_handle, struct pci_dev *pdev)
 {
 	struct ocxl_link *link = (struct ocxl_link *) link_handle;
 
@@ -759,7 +759,7 @@ u64 ocxl_link_lpc_map(void *link_handle, struct pci_dev *pdev)
 	return link->lpc_mem;
 }
 
-void ocxl_link_lpc_release(void *link_handle, struct pci_dev *pdev)
+void ocxl_link_lpc_offline(void *link_handle, struct pci_dev *pdev)
 {
 	struct ocxl_link *link = (struct ocxl_link *) link_handle;
 

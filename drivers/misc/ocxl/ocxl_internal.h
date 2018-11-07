@@ -52,6 +52,12 @@ struct ocxl_afu {
 	void __iomem *global_mmio_ptr;
 	u64 pp_mmio_start;
 	void *private;
+	u64 lpc_base_addr; /* Covers both LPC & special purpose memory */
+	struct bin_attribute attr_global_mmio;
+	struct bin_attribute attr_lpc_mem;
+	struct resource lpc_res;
+	struct bin_attribute attr_special_purpose_mem;
+	struct resource special_purpose_res;
 };
 
 enum ocxl_context_status {
@@ -170,7 +176,7 @@ extern u64 ocxl_link_get_lpc_mem_sz(void *link_handle);
  * @link_handle: The OpenCAPI link handle
  * @pdev: A device that is on the link
  */
-u64 ocxl_link_lpc_map(void *link_handle, struct pci_dev *pdev);
+u64 ocxl_link_lpc_online(void *link_handle, struct pci_dev *pdev);
 
 /**
  * Release the LPC memory device for an OpenCAPI device
@@ -181,6 +187,6 @@ u64 ocxl_link_lpc_map(void *link_handle, struct pci_dev *pdev);
  * @link_handle: The OpenCAPI link handle
  * @pdev: A device that is on the link
  */
-void ocxl_link_lpc_release(void *link_handle, struct pci_dev *pdev);
+void ocxl_link_lpc_offline(void *link_handle, struct pci_dev *pdev);
 
 #endif /* _OCXL_INTERNAL_H_ */
