@@ -6,7 +6,7 @@
 #include <linux/eventfd.h>
 #include <linux/uaccess.h>
 #ifdef CONFIG_MEMORY_HOTPLUG
-#include <linux/memory.h>
+#include <asm/pnv-ocxl.h>
 #endif
 #include <uapi/misc/ocxl.h>
 #include <asm/reg.h>
@@ -194,23 +194,16 @@ static int get_numa_node_id(struct ocxl_context *ctx)
 }
 
 #ifdef CONFIG_MEMORY_HOTPLUG
-static int online_mem_block(struct memory_block *mem, void *arg)
-{
-	/* mem->online_type is protected by device_hotplug_lock */
-	mem->online_type = MMOP_ONLINE_MOVABLE;
-
-	return device_online(&mem->dev);
-}
-
 static long afu_ioctl_online_lpc_mem(struct ocxl_context *ctx, unsigned long args)
 {
+	struct ocxl_afu *afu = ctx->afu;
 	int nid, rc;
 
-	if (! ctx->afu->config.lpc_mem_size)
+	if (! afu->config.lpc_mem_size)
 		return -EINVAL;
 
-	if (! ctx->afu->lpc_res.start) {
-		rc = ocxl_afu_map_lpc_mem(ctx->afu);
+	if (! afu->lpc_res.start) {
+		rc = ocxl_afu_map_lpc_mem(afu);
 		if (rc)
 			return rc;
 	}
@@ -219,17 +212,11 @@ static long afu_ioctl_online_lpc_mem(struct ocxl_context *ctx, unsigned long arg
 	if (nid < 0)
 		return nid;
 
-	rc = add_memory(nid, ctx->afu->lpc_res.start,
-			ctx->afu->config.lpc_mem_size);
+	rc = add_memory(nid, afu->lpc_res.start, afu->config.lpc_mem_size);
 	if (rc)
 		return rc;
 
-	lock_device_hotplug();
-	rc = walk_memory_blocks(ctx->afu->lpc_res.start,
-				ctx->afu->config.lpc_mem_size,
-				NULL, online_mem_block);
-	unlock_device_hotplug();
-	return rc;
+	return pnv_ocxl_online_memory(afu->lpc_res.start, afu->config.lpc_mem_size);
 }
 #endif
 
