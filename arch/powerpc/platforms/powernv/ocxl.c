@@ -561,18 +561,22 @@ EXPORT_SYMBOL_GPL(pnv_ocxl_free_xive_irq);
 #ifdef CONFIG_MEMORY_HOTPLUG
 static int online_mem_block(struct memory_block *mem, void *arg)
 {
+	unsigned long online_type = (unsigned long)arg;
+
 	/* mem->online_type is protected by device_hotplug_lock */
-	mem->online_type = MMOP_ONLINE_MOVABLE;
+	mem->online_type = (int)online_type;
 
 	return device_online(&mem->dev);
 }
 
-int pnv_ocxl_online_memory(u64 start, u64 size)
+int pnv_ocxl_online_memory(u64 start, u64 size, bool movable)
 {
 	int rc;
+	unsigned long online_type;
 
+	online_type = movable ? MMOP_ONLINE_MOVABLE : MMOP_ONLINE_KERNEL;
 	lock_device_hotplug();
-	rc = walk_memory_blocks(start, size, NULL, online_mem_block);
+	rc = walk_memory_blocks(start, size, (void *)online_type, online_mem_block);
 	unlock_device_hotplug();
 	return rc;
 }

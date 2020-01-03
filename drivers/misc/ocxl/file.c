@@ -192,7 +192,7 @@ static int get_numa_node_id(struct ocxl_context *ctx)
 }
 
 #ifdef CONFIG_MEMORY_HOTPLUG
-static long afu_ioctl_online_lpc_mem(struct ocxl_context *ctx, unsigned long args)
+static long afu_ioctl_online_lpc_mem(struct ocxl_context *ctx, int movable)
 {
 	struct ocxl_afu *afu = ctx->afu;
 	int nid, rc;
@@ -214,7 +214,7 @@ static long afu_ioctl_online_lpc_mem(struct ocxl_context *ctx, unsigned long arg
 	if (rc)
 		return rc;
 
-	return pnv_ocxl_online_memory(afu->lpc_res.start, afu->config.lpc_mem_size);
+	return pnv_ocxl_online_memory(afu->lpc_res.start, afu->config.lpc_mem_size, movable);
 }
 #endif
 
@@ -351,7 +351,7 @@ static long afu_ioctl(struct file *file, unsigned int cmd,
 
 #ifdef CONFIG_MEMORY_HOTPLUG
 	case OCXL_IOCTL_ONLINE_LPC_MEM:
-		rc = afu_ioctl_online_lpc_mem(ctx, args);
+		rc = afu_ioctl_online_lpc_mem(ctx, (bool)args);
 		break;
 #endif
 

@@ -36,7 +36,7 @@ extern u64 pnv_ocxl_platform_lpc_setup(struct pci_dev *pdev, u64 size);
 extern void pnv_ocxl_platform_lpc_release(struct pci_dev *pdev);
 
 #ifdef CONFIG_MEMORY_HOTPLUG
-int pnv_ocxl_online_memory(u64 start, u64 size);
+int pnv_ocxl_online_memory(u64 start, u64 size, bool movable);
 #endif
 
 #endif /* _ASM_PNV_OCXL_H */
