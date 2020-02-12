@@ -216,6 +216,31 @@ static long afu_ioctl_online_lpc_mem(struct ocxl_context *ctx, int movable)
 
 	return pnv_ocxl_online_memory(afu->lpc_res.start, afu->config.lpc_mem_size, movable);
 }
+
+static long afu_ioctl_offline_lpc_mem(struct ocxl_context *ctx, unsigned long arg)
+{
+	struct ocxl_afu *afu = ctx->afu;
+	int nid, rc;
+
+	if (! afu->config.lpc_mem_size)
+		return -EINVAL;
+
+	if (! afu->lpc_res.start) {
+		rc = ocxl_afu_map_lpc_mem(afu);
+		if (rc)
+			return rc;
+	}
+
+	nid = get_numa_node_id(ctx);
+	if (nid < 0)
+		return nid;
+
+	rc = pnv_ocxl_offline_memory(afu->lpc_res.start, afu->config.lpc_mem_size);
+	if (rc)
+		return rc;
+
+	return remove_memory(nid, afu->lpc_res.start, afu->config.lpc_mem_size);
+}
 #endif
 
 static long afu_ioctl_get_lpc_mem_info(struct ocxl_context *ctx,
@@ -352,6 +377,10 @@ static long afu_ioctl(struct file *file, unsigned int cmd,
 #ifdef CONFIG_MEMORY_HOTPLUG
 	case OCXL_IOCTL_ONLINE_LPC_MEM:
 		rc = afu_ioctl_online_lpc_mem(ctx, (bool)args);
+		break;
+
+	case OCXL_IOCTL_OFFLINE_LPC_MEM:
+		rc = afu_ioctl_offline_lpc_mem(ctx, args);
 		break;
 #endif
 

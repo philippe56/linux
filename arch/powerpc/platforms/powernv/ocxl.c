@@ -581,4 +581,20 @@ int pnv_ocxl_online_memory(u64 start, u64 size, bool movable)
 	return rc;
 }
 EXPORT_SYMBOL_GPL(pnv_ocxl_online_memory);
+
+static int offline_mem_block(struct memory_block *mem, void *arg)
+{
+	return device_offline(&mem->dev);
+}
+
+int pnv_ocxl_offline_memory(u64 start, u64 size)
+{
+	int rc;
+
+	lock_device_hotplug();
+	rc = walk_memory_blocks(start, size, NULL, offline_mem_block);
+	unlock_device_hotplug();
+	return rc;
+}
+EXPORT_SYMBOL_GPL(pnv_ocxl_offline_memory);
 #endif
