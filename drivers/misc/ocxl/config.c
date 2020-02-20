@@ -159,7 +159,7 @@ static int read_dvsec_afu_info(struct pci_dev *dev, struct ocxl_fn_config *fn)
 static int read_dvsec_vendor(struct pci_dev *dev)
 {
 	int pos;
-	u32 cfg, tlx, dlx;
+	u32 cfg, tlx, dlx, reset_reload;
 
 	/*
 	 * vendor specific DVSEC is optional
@@ -178,11 +178,52 @@ static int read_dvsec_vendor(struct pci_dev *dev)
 	pci_read_config_dword(dev, pos + OCXL_DVSEC_VENDOR_CFG_VERS, &cfg);
 	pci_read_config_dword(dev, pos + OCXL_DVSEC_VENDOR_TLX_VERS, &tlx);
 	pci_read_config_dword(dev, pos + OCXL_DVSEC_VENDOR_DLX_VERS, &dlx);
+	pci_read_config_dword(dev, pos + OCXL_DVSEC_VENDOR_RESET_RELOAD, &reset_reload);
 
 	dev_dbg(&dev->dev, "Vendor specific DVSEC:\n");
 	dev_dbg(&dev->dev, "  CFG version = 0x%x\n", cfg);
 	dev_dbg(&dev->dev, "  TLX version = 0x%x\n", tlx);
 	dev_dbg(&dev->dev, "  DLX version = 0x%x\n", dlx);
+	dev_dbg(&dev->dev, "  ResetReload = 0x%x\n", reset_reload);
+	return 0;
+}
+
+int ocxl_config_get_reset_reload(struct pci_dev *dev, int *val)
+{
+	int reset_reload = -1;
+	int pos = 0;
+
+	if (PCI_FUNC(dev->devfn) == 0)
+		pos = find_dvsec(dev, OCXL_DVSEC_VENDOR_ID);
+
+	if (pos)
+		pci_read_config_dword(dev, pos + OCXL_DVSEC_VENDOR_RESET_RELOAD,
+				      &reset_reload);
+
+	if (reset_reload == -1)
+		return reset_reload;
+
+	*val = reset_reload & BIT(0);
+	return 0;
+}
+
+int ocxl_config_set_reset_reload(struct pci_dev *dev, int val)
+{
+	int reset_reload = -1;
+	int pos = 0;
+
+	if (PCI_FUNC(dev->devfn) == 0)
+		pos = find_dvsec(dev, OCXL_DVSEC_VENDOR_ID);
+
+	if (pos)
+		pci_read_config_dword(dev, pos + OCXL_DVSEC_VENDOR_RESET_RELOAD,
+				      &reset_reload);
+
+	if (reset_reload == -1)
+		return reset_reload;
+
+	val &= BIT(0);
+	pci_write_config_dword(dev, pos + OCXL_DVSEC_VENDOR_RESET_RELOAD, val);
 	return 0;
 }
 
