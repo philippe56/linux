@@ -71,6 +71,20 @@ static int find_dvsec_afu_ctrl(struct pci_dev *dev, u8 afu_idx)
 	return 0;
 }
 
+/**
+ * get_function_0() - Find a related PCI device (function 0)
+ * @device: PCI device to match
+ *
+ * Returns a pointer to the related device, or null if not found
+ */
+static struct pci_dev *get_function_0(struct pci_dev *dev)
+{
+	unsigned int devfn = PCI_DEVFN(PCI_SLOT(dev->devfn), 0);
+
+	return pci_get_domain_bus_and_slot(pci_domain_nr(dev->bus),
+					   dev->bus->number, devfn);
+}
+
 static void read_pasid(struct pci_dev *dev, struct ocxl_fn_config *fn)
 {
 	u16 val;
@@ -192,14 +206,15 @@ int ocxl_config_get_reset_reload(struct pci_dev *dev, int *val)
 {
 	int reset_reload = -1;
 	int pos = 0;
+	struct pci_dev *dev0 = get_function_0(dev);
 
-	if (PCI_FUNC(dev->devfn) == 0)
-		pos = find_dvsec(dev, OCXL_DVSEC_VENDOR_ID);
+	if (dev0)
+		pos = find_dvsec(dev0, OCXL_DVSEC_VENDOR_ID);
 
 	if (pos)
-		pci_read_config_dword(dev, pos + OCXL_DVSEC_VENDOR_RESET_RELOAD,
+		pci_read_config_dword(dev0,
+				      pos + OCXL_DVSEC_VENDOR_RESET_RELOAD,
 				      &reset_reload);
-
 	if (reset_reload == -1)
 		return reset_reload;
 
@@ -211,19 +226,20 @@ int ocxl_config_set_reset_reload(struct pci_dev *dev, int val)
 {
 	int reset_reload = -1;
 	int pos = 0;
+	struct pci_dev *dev0 = get_function_0(dev);
 
-	if (PCI_FUNC(dev->devfn) == 0)
-		pos = find_dvsec(dev, OCXL_DVSEC_VENDOR_ID);
+	if (dev0)
+		pos = find_dvsec(dev0, OCXL_DVSEC_VENDOR_ID);
 
 	if (pos)
-		pci_read_config_dword(dev, pos + OCXL_DVSEC_VENDOR_RESET_RELOAD,
+		pci_read_config_dword(dev0,
+				      pos + OCXL_DVSEC_VENDOR_RESET_RELOAD,
 				      &reset_reload);
-
 	if (reset_reload == -1)
 		return reset_reload;
 
 	val &= BIT(0);
-	pci_write_config_dword(dev, pos + OCXL_DVSEC_VENDOR_RESET_RELOAD, val);
+	pci_write_config_dword(dev0, pos + OCXL_DVSEC_VENDOR_RESET_RELOAD, val);
 	return 0;
 }
 
